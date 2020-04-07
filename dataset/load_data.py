@@ -8,32 +8,35 @@ limits = {
     'vocab_size' : 10000,
 }
 
-###########################
-#   Return index tables   #
-###########################
-def get_index_tables():
-    freq_table = create_frequency_table()
-    word2index = create_word2index(freq_table)
-    index2word = create_index2word(freq_table)
+start_token = 'sssss '
+end_token = ' eeeee'
 
-    return (word2index, index2word)
+############################
+#   Return lookup tables   #
+############################
+def get_lookup_tables():
+    freq_table = create_frequency_table()
+    word2int = create_word2int(freq_table)
+    int2word = create_int2word(freq_table)
+
+    return (word2int, int2word)
 
 #########################################################
 #   Helper: return list of ints corresponding to data   #
 #########################################################
-def index_words(data, word2index):
-    indexed_data = list()
+def word2int(data, word2int):
+    int_data = list()
 
     for entry in data:
-        indexed_entry = list()
+        int_entry = list()
         for word in entry.split(' '):
-            if word in word2index:
-                value = word2index[word]
-                indexed_entry.append(value)
+            if word in word2int:
+                value = word2int[word]
+                int_entry.append(value)
 
-        indexed_data.append(indexed_entry)
+        int_data.append(int_entry)
 
-    return indexed_data
+    return int_data
 
 ###############################################
 #   Ensures length of text is within limits   #
@@ -48,9 +51,13 @@ def filter_len():
         summary_len = len(entry['summary'].split(' '))
 
         # check to make sure that summary length is shorter than text length
-        if text_len > summary_len and text_len < limits['max_text']:
+        if text_len > summary_len:
             text.append(entry['text'])
             summary.append(entry['summary'])
+
+
+    # add the start and end tokens to the summary
+    summary = [start_token + entry + end_token for entry in summary]
 
     return (text, summary)
 
@@ -73,35 +80,35 @@ def create_frequency_table():
 
     for (i,key) in enumerate(sorted(freq_table, key=freq_table.get, reverse=True)):
         if i > limits['vocab_size']:
-          break
+            break
         else:
             sorted_table[key] = freq_table[key]
 
     return sorted_table
 
 
-###############################
-# Returns word-to-index table #
-###############################
-def create_word2index(freq_table):
-    word2index = dict()
+#############################
+# Returns word-to-int table #
+#############################
+def create_word2int(freq_table):
+    word2int = dict()
 
-    for (i, key) in enumerate(freq_table):
-        word2index[key] = i
+    for (i, key) in enumerate(freq_table, 1):
+        word2int[key] = i
 
-    return word2index
+    return word2int
 
 
 #################################
-#   Returns index-to-word table #
+#   Returns int-to-word table #
 #################################
-def create_index2word(freq_table):
-    index2word = dict()
+def create_int2word(freq_table):
+    int2word = dict()
 
-    for (i ,key) in enumerate(freq_table):
-        index2word[i] = key
+    for (i ,key) in enumerate(freq_table, 1):
+        int2word[i] = key
 
-    return index2word
+    return int2word
 
 #########################################
 #   Helper: counts frequency of words   #
